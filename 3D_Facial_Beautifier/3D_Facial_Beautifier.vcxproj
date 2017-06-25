@@ -74,8 +74,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Program Files\Graphics\SOIL\src;$(SolutionDir)\dependencies\glfw-3.2.1.bin.WIN64\include;$(SolutionDir)\dependencies\glew-2.0.0\include\;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Graphics\SOIL\projects\VC9\x64\Release;$(SolutionDir)\dependencies\glew-2.0.0\lib\Release\x64;$(SolutionDir)\dependencies\glfw-3.2.1.bin.WIN64\lib-vc2015;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\dependencies\SOIL\src;$(SolutionDir)\dependencies\glfw-3.2.1.bin.WIN64\include;$(SolutionDir)\dependencies\glew-2.0.0\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\dependencies\SOIL\projects\VC9\x64\Release;$(SolutionDir)\dependencies\glew-2.0.0\lib\Release\x64;$(SolutionDir)\dependencies\glfw-3.2.1.bin.WIN64\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
