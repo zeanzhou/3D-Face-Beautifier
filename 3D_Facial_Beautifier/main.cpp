@@ -1,6 +1,10 @@
 // Std. Includes
 #include <string>
 
+// OpenCV
+#include <opencv2/opencv.hpp>
+#include "cvtest.h"
+
 // GLEW
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -42,6 +46,9 @@ GLfloat lastFrame = 0.0f;
 // The MAIN function, from here we start our application and run our Game loop
 int main()
 {
+	// Test OpenCV
+	cvtest();
+
 	// Init GLFW
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
