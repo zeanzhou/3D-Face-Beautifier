@@ -243,3 +243,10 @@ ModelManifest.xml
 
 # Dependencies
 **/dependencies/*
+
+# Point Cloud Files
+*.ply
+
+# Wavefront OBJ Files
+*.obj
+*.mtl
