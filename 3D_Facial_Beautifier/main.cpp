@@ -3,7 +3,6 @@
 
 // OpenCV
 #include <opencv2/opencv.hpp>
-#include "cvtest.h"
 
 // GLEW
 #define GLEW_STATIC
@@ -15,15 +14,13 @@
 // GL includes
 #include "Shader.h"
 #include "Camera.h"
-#include "Model.h"
 
 // GLM Mathemtics
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-// Other Libs
-#include <SOIL.h>
+#include "PLYLoader.h"
 
 // Properties
 GLuint screenWidth = 800, screenHeight = 600;
@@ -81,11 +78,9 @@ int main()
 	Shader shader("./Shaders/obj.vs", "./Shaders/obj.frag");
 
 	// Load models
-	//Model ourModel("./Resources/nanosuit/nanosuit.obj");
-	Model ourModel("./Resources/face/szz.ply");
-	//Model ourModel("./Resources/body/sun/sun.obj");
+	PointCloudPLY plyFile("./Resources/face/szz.ply");
 
-
+	Mesh ourModel = plyFile.getMesh();
 	// Draw in wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -141,6 +136,10 @@ void Do_Movement()
 		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (keys[GLFW_KEY_D])
 		camera.ProcessKeyboard(RIGHT, deltaTime);
+	if (keys[GLFW_KEY_SPACE])
+		camera.ProcessKeyboard(UP, deltaTime);
+	if (keys[GLFW_KEY_LEFT_CONTROL])
+		camera.ProcessKeyboard(DOWN, deltaTime);
 }
 
 // Is called whenever a key is pressed/released via GLFW

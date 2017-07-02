@@ -146,13 +146,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="cvtest.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cvtest.cpp" />
+    <ClCompile Include="PLYLoader.h" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
