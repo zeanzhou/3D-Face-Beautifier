@@ -93,17 +93,33 @@ private:
 		for (GLuint i = 0; i < mesh->mNumVertices; i++)
 		{
 			Vertex vertex;
-			glm::vec3 vector; // We declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
+			glm::vec4 vector; // We declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
 							  // Positions
 			vector.x = mesh->mVertices[i].x;
 			vector.y = mesh->mVertices[i].y;
 			vector.z = mesh->mVertices[i].z;
 			vertex.Position = vector;
-			// Normals
-			vector.x = mesh->mNormals[i].x;
-			vector.y = mesh->mNormals[i].y;
-			vector.z = mesh->mNormals[i].z;
-			vertex.Normal = vector;
+			if (mesh->HasNormals())
+			{
+				// Normals
+				vector.x = mesh->mNormals[i].x;
+				vector.y = mesh->mNormals[i].y;
+				vector.z = mesh->mNormals[i].z;
+				vertex.Normal = vector;
+			}
+			
+			if (mesh->HasVertexColors(0))
+			{
+				// Color // Added by ZZA
+				vector.x = mesh->mColors[0][i].r;
+				vector.y = mesh->mColors[0][i].g;
+				vector.z = mesh->mColors[0][i].b;
+				vector.w = mesh->mColors[0][i].a;
+				vertex.VertexColor = vector;
+				//cout << vector.x << " " << vector.y << " " << vector.z << " " << vector.w << endl;
+			}
+
+
 			// Texture Coordinates
 			if (mesh->mTextureCoords[0]) // Does the mesh contain texture coordinates?
 			{
@@ -118,14 +134,19 @@ private:
 				vertex.TexCoords = glm::vec2(0.0f, 0.0f);
 			vertices.push_back(vertex);
 		}
+
 		// Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
-		for (GLuint i = 0; i < mesh->mNumFaces; i++)
-		{
-			aiFace face = mesh->mFaces[i];
-			// Retrieve all indices of the face and store them in the indices vector
-			for (GLuint j = 0; j < face.mNumIndices; j++)
-				indices.push_back(face.mIndices[j]);
-		}
+		if (mesh->mNumFaces > 0)
+			for (GLuint i = 0; i < mesh->mNumFaces; i++)
+			{
+				aiFace face = mesh->mFaces[i];
+				// Retrieve all indices of the face and store them in the indices vector
+				for (GLuint j = 0; j < face.mNumIndices; j++)
+					indices.push_back(face.mIndices[j]);
+			}
+		else
+			for (GLuint i = 0; i < mesh->mNumVertices; i++)
+				indices.push_back(i);
 		// Process materials
 		if (mesh->mMaterialIndex >= 0)
 		{

@@ -19,6 +19,8 @@ struct Vertex {
 	glm::vec3 Normal;
 	// TexCoords
 	glm::vec2 TexCoords;
+	// VertexColor
+	glm::vec4 VertexColor;
 };
 
 struct Texture {
@@ -75,7 +77,7 @@ public:
 
 		// Draw mesh
 		glBindVertexArray(this->VAO);
-		glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_POINTS, this->indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		// Always good practice to set everything back to defaults once configured.
@@ -120,6 +122,9 @@ private:
 		// Vertex Texture Coords
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, TexCoords));
+		// Vertex Colors
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, VertexColor));
 
 		glBindVertexArray(0);
 	}
