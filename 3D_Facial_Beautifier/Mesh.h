@@ -63,7 +63,6 @@ public:
 		glBindVertexArray(this->VAO);
 		glDrawElements(GL_POINTS, this->indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
-
 	}
 
 private:
@@ -108,10 +107,6 @@ public:
 	Area(vector<Vertex2D> vertices)
 	{
 		this->vertices = vertices;
-
-		//for (GLuint i = 0; i < vertices.size(); ++i)
-		//	this->indices.push_back(i);
-
 		this->setup();
 	}
 
@@ -151,7 +146,6 @@ public:
 	void Append(Vertex2D v)
 	{
 		this->vertices.push_back(v);
-		//this->indices.push_back(this->indices.size()-1);
 	}
 
 	void Pop()
@@ -167,9 +161,6 @@ public:
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
 			glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex2D), &this->vertices[0], GL_DYNAMIC_DRAW);
-
-			//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-			//glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(GLuint), &this->indices[0], GL_DYNAMIC_DRAW);
 		}
 
 		// Vertex Positions
@@ -180,14 +171,12 @@ public:
 		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (GLvoid*)offsetof(Vertex2D, VertexColor));
 		
 		glDrawArrays(GL_LINE_STRIP, 0, this->vertices.size());
-		//glDrawElements(GL_LINE_STRIP, this->indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
 
 private:
 	vector<Vertex2D> vertices;
-	//vector<GLuint> indices;
-	GLuint VAO, VBO;// , EBO;
+	GLuint VAO, VBO;
 
 	// Initializes all the buffer objects/arrays
 	void setup()
@@ -195,28 +184,5 @@ private:
 		// Create buffers/arrays
 		glGenVertexArrays(1, &this->VAO);
 		glGenBuffers(1, &this->VBO);
-		//glGenBuffers(1, &this->EBO);
-
-		//glBindVertexArray(this->VAO);
-
-		//// Load data into vertex buffers
-		//if (this->vertices.size() > 0)
-		//{
-		//	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-		//	glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex2D), &this->vertices[0], GL_DYNAMIC_DRAW);
-
-		//	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-		//	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(GLuint), &this->indices[0], GL_DYNAMIC_DRAW);
-		//}
-
-		//// Set the vertex attribute pointers
-		//// Vertex Positions
-		//glEnableVertexAttribArray(0);
-		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (GLvoid*)0);
-		//// Vertex Colors
-		//glEnableVertexAttribArray(1);
-		//glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (GLvoid*)offsetof(Vertex2D, VertexColor));
-
-		//glBindVertexArray(0);
 	}
 };

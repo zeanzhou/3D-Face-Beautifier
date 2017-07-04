@@ -183,21 +183,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mousemv_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	//if (firstMouse)
-	//{
-	//	lastX = xpos;
-	//	lastY = ypos;
-	//	firstMouse = false;
-	//}
-
-	//GLfloat xoffset = xpos - lastX;
-	//GLfloat yoffset = lastY - ypos;
-
-	//lastX = xpos;
-	//lastY = ypos;
-
-	//camera.ProcessMouseMovement(xoffset, yoffset);
-
 	if (displayMode == 2) {
 		drawable.back().UpdateEnd(xpos / (GLfloat)screenWidth * 2.0f - 1, (screenHeight - ypos) / (GLfloat)screenHeight * 2.0f - 1);
 	}
@@ -248,10 +233,5 @@ void mousebtn_callback(GLFWwindow* window, int button, int action, int mods)
 			drawable.back().InsertBeforeEnd(v);
 		}
 	}
-
-
-}
-void select_area() {
-
 }
 #pragma endregion
