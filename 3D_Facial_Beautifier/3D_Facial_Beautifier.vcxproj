@@ -155,8 +155,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Shaders\obj.frag" />
-    <None Include="Shaders\obj.vs" />
+    <None Include="Shaders\area.frag" />
+    <None Include="Shaders\area.vs" />
+    <None Include="Shaders\model.frag" />
+    <None Include="Shaders\model.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

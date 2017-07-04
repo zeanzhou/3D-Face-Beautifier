@@ -35,10 +35,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Shaders\obj.frag">
+    <None Include="Shaders\area.vs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="Shaders\obj.vs">
+    <None Include="Shaders\model.frag">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="Shaders\model.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="Shaders\area.frag">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
