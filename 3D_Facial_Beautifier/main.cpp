@@ -29,8 +29,16 @@ GLuint screenWidth = 800, screenHeight = 600;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mousemv_callback(GLFWwindow* window, double xpos, double ypos);
+vector<GLuint> func(vector<glm::vec2>allVertexs, vector<Vertex2D>selectedVertices);
 void mousebtn_callback(GLFWwindow* window, int button, int action, int mods);
 void Do_Movement();
+GLuint modeSwitch(GLuint mode);
+
+// Mode Macro
+#define FB_MODE_UNCHANGED 0
+#define FB_MODE_NORMAL 1
+#define FB_MODE_SELECT_POLYGON 2
+#define FB_MODE_BRUSH_CIRCLE 3
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 500.0f));
@@ -41,8 +49,8 @@ bool firstMouse = true;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
-// Mode Indicator
-GLint displayMode = 0;
+// Pointer to model
+Mesh* pModel = nullptr;
 
 // Create a vector for area to draw
 vector<Area> drawable;
@@ -66,7 +74,6 @@ int main()
 	glfwSetCursorPosCallback(window, mousemv_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
-
 	// Initialize GLEW to setup the OpenGL Function pointers
 	glewExperimental = GL_TRUE;
 	glewInit();
@@ -86,9 +93,13 @@ int main()
 
 	// Convert it to model
 	Mesh ourModel = plyFile.getMesh();
+	pModel = &ourModel;
 
 	// Draw in wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	// Mode initialization
+	modeSwitch(FB_MODE_NORMAL);
 
 	cout << "Initialized" << endl;
 
@@ -172,8 +183,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 	if (keys[GLFW_KEY_P]) {
 		cout << "Plz select a polygon area..." << endl;
-		displayMode = 2;
-		
+		modeSwitch(FB_MODE_SELECT_POLYGON);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 10000.0f);
+		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 model;
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // Translate it down a bit so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
+		pModel->genVertices2D(projection * view * model);
+
 		vector<Vertex2D> v;
 		v.push_back(Vertex2D(0.0f, 0.0f));
 		Area a(v);
@@ -183,7 +200,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mousemv_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	if (displayMode == 2) {
+	if (modeSwitch(FB_MODE_UNCHANGED) == FB_MODE_SELECT_POLYGON) {
 		drawable.back().UpdateEnd(xpos / (GLfloat)screenWidth * 2.0f - 1, (screenHeight - ypos) / (GLfloat)screenHeight * 2.0f - 1);
 	}
 }
@@ -219,19 +236,69 @@ void mousebtn_callback(GLFWwindow* window, int button, int action, int mods)
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_1 && DOUBLE_CLICK) {
-		if (displayMode == 2) {
-			displayMode = 0;
+		if (modeSwitch(FB_MODE_UNCHANGED) == FB_MODE_SELECT_POLYGON) {
+			modeSwitch(FB_MODE_NORMAL);
 			drawable.back().Pop();
 			cout << "Finish Selection" << endl;
+			auto selectedIndices = func(pModel->vertices_2D, drawable.back().vertices);
+			for (int i = 0; i < selectedIndices.size(); ++i) {
+				pModel->vertices[selectedIndices[i]].VertexColor = glm::vec3(1.0f, 0.0f, 0.0f);
+				//cout << "Vertex " << i << endl;
+			}
 		}
 	}
 
 	else if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
-		if (displayMode == 2) {
+		if (modeSwitch(FB_MODE_UNCHANGED) == FB_MODE_SELECT_POLYGON) {
 			Vertex2D v = Vertex2D(xpos / (GLfloat)screenWidth * 2.0f - 1, (screenHeight - ypos) / (GLfloat)screenHeight * 2.0f - 1);
 			cout << drawable.back().Count() << " " << v.Position.x << " " << v.Position.y << endl;
 			drawable.back().InsertBeforeEnd(v);
 		}
 	}
+}
+
+vector<GLuint> func(vector<glm::vec2>allVertexs, vector<Vertex2D>selectedVertices) {
+	vector <GLuint> output;
+	for (GLuint j = 0; j<allVertexs.size(); j++) {
+		int nCross = 0;
+		glm::vec2 p;
+		p = allVertexs[j];
+		//printf("%d,(%f,%f)\n", allVertexs.size(),p.x,p.y);
+		//system("pause");
+		for (int i = 0; i < selectedVertices.size(); i++) {
+			glm::vec2 p1, p2;
+			p1 = selectedVertices[i].Position;
+			p2 = selectedVertices[(i + 1) % selectedVertices.size()].Position;
+			//printf("%d,(%f,%f),(%f,%f)\n", allVertexs.size(), p1.x, p1.y, p2.x, p2.y);
+
+			if (p1.y == p2.y) // p1p2 与 y=p0.y平行 
+				continue;
+			if (p.y < min(p1.y, p2.y)) // 交点在p1p2延长线上 
+				continue;
+			if (p.y >= max(p1.y, p2.y)) // 交点在p1p2延长线上 
+				continue;
+			// 求交点的 X 坐标 -------------------------------------------------------------- 
+			double x = (double)(p.y - p1.y) * (double)(p2.x - p1.x) / (double)(p2.y - p1.y) + p1.x;
+			if (x > p.x)
+				nCross++; // 只统计单边交点 
+
+		}
+		if (nCross % 2 == 1) {
+			output.push_back(j);
+			//printf("yes,%d",j);
+			//system("pause");
+		}
+	}
+	return output;
+}
+
+GLuint modeSwitch(GLuint mode = FB_MODE_UNCHANGED)
+{
+	// Mode Indicator
+	static GLuint displayMode = mode;
+	if (mode == 0)
+		return displayMode;
+	else
+		return displayMode = mode;
 }
 #pragma endregion

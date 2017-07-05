@@ -44,6 +44,7 @@ public:
 	/*  Mesh Data  */
 	vector<Vertex> vertices;
 	vector<GLuint> indices;
+	vector<glm::vec2> vertices_2D;
 
 	/*  Functions  */
 	// Constructor
@@ -62,7 +63,48 @@ public:
 		// Draw mesh
 		glBindVertexArray(this->VAO);
 		glDrawElements(GL_POINTS, this->indices.size(), GL_UNSIGNED_INT, 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+		// A great thing about structs is that their memory layout is sequential for all its items.
+		// The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
+		// again translates to 3/2 floats which translates to a byte array.
+		glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(GLuint), &this->indices[0], GL_STATIC_DRAW);
+
+		// Set the vertex attribute pointers
+		// Vertex Positions
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+		// Vertex Colors
+		glEnableVertexAttribArray(1);
+
 		glBindVertexArray(0);
+	}
+	void genVertices2D(glm::mat4 PVM)
+	{
+		if (this->vertices_2D.size() != this->vertices.size())
+		{
+			this->vertices_2D.clear();
+			for (GLuint i = 0; i < this->vertices.size(); i++)
+			{
+				glm::vec4 v = PVM * glm::vec4(this->vertices[i].Position, 1.0f);
+				v.x /= v.w;
+				v.y /= v.w;
+				v.z /= v.w;
+				vertices_2D.push_back(glm::vec2(v));
+			}
+		} else
+			for (GLuint i = 0; i < this->vertices_2D.size(); i++)
+			{
+				glm::vec4 v = PVM * glm::vec4(this->vertices[i].Position, 1.0f);
+				v.x /= v.w;
+				v.y /= v.w;
+				v.z /= v.w;
+				vertices_2D[i].x = v.x;
+				vertices_2D[i].y = v.y;
+			}
 	}
 
 private:
@@ -103,7 +145,7 @@ private:
 
 class Area {
 public:
-
+	vector<Vertex2D> vertices;
 	Area(vector<Vertex2D> vertices)
 	{
 		this->vertices = vertices;
@@ -175,7 +217,6 @@ public:
 	}
 
 private:
-	vector<Vertex2D> vertices;
 	GLuint VAO, VBO;
 
 	// Initializes all the buffer objects/arrays
