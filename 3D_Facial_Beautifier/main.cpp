@@ -33,12 +33,14 @@ vector<GLuint> func(vector<glm::vec2>allVertexs, vector<Vertex2D>selectedVertice
 void mousebtn_callback(GLFWwindow* window, int button, int action, int mods);
 void Do_Movement();
 GLuint modeSwitch(GLuint mode);
+void areaSelectAddVertex(double xpos, double ypos, int pos);
 
 // Mode Macro
 #define FB_MODE_UNCHANGED 0
 #define FB_MODE_NORMAL 1
 #define FB_MODE_SELECT_POLYGON 2
-#define FB_MODE_BRUSH_CIRCLE 3
+#define FB_MODE_SELECT_FREE_CURVE 3
+#define FB_MODE_BRUSH_CIRCLE 10
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 500.0f));
@@ -53,7 +55,8 @@ GLfloat lastFrame = 0.0f;
 Mesh* pModel = nullptr;
 
 // Create a vector for area to draw
-vector<Area> drawable;
+vector<Area> selected_areas;
+
 
 // The MAIN function, from here we start our application and run our Game loop
 int main()
@@ -139,7 +142,7 @@ int main()
 		
 
 		//// Draw area border
-		for (auto iter = drawable.begin(); iter != drawable.end(); ++iter)
+		for (auto iter = selected_areas.begin(); iter != selected_areas.end(); ++iter)
 			iter->Draw(areaShader);
 
 		// Swap the buffers
@@ -181,27 +184,42 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	else if (action == GLFW_RELEASE)
 		keys[key] = false;
 
-	if (keys[GLFW_KEY_P]) {
-		cout << "Plz select a polygon area..." << endl;
-		modeSwitch(FB_MODE_SELECT_POLYGON);
+	if (keys[GLFW_KEY_P] || keys[GLFW_KEY_O]) {
+
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 10000.0f);
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 model;
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // Translate it down a bit so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
 		pModel->genVertices2D(projection * view * model);
-
 		vector<Vertex2D> v;
-		v.push_back(Vertex2D(0.0f, 0.0f));
+
+		if (keys[GLFW_KEY_P]) {
+			cout << "Plz select a polygon area..." << endl;
+			modeSwitch(FB_MODE_SELECT_POLYGON);
+			v.push_back(Vertex2D(0.0f, 0.0f));
+		}
+		else if (keys[GLFW_KEY_O]) {
+			cout << "Plz select a convex area..." << endl;
+			modeSwitch(FB_MODE_SELECT_FREE_CURVE);
+		}
+		
 		Area a(v);
-		drawable.push_back(a);
+		selected_areas.push_back(a);
 	}
 }
 
 void mousemv_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	if (modeSwitch(FB_MODE_UNCHANGED) == FB_MODE_SELECT_POLYGON) {
-		drawable.back().UpdateEnd(xpos / (GLfloat)screenWidth * 2.0f - 1, (screenHeight - ypos) / (GLfloat)screenHeight * 2.0f - 1);
+	GLuint current_mode = modeSwitch(FB_MODE_UNCHANGED);
+
+	if (current_mode == FB_MODE_SELECT_POLYGON) {
+		selected_areas.back().UpdateEnd(xpos / (GLfloat)screenWidth * 2.0f - 1, (screenHeight - ypos) / (GLfloat)screenHeight * 2.0f - 1);
+	}
+	else if (current_mode == FB_MODE_SELECT_FREE_CURVE) {
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+			areaSelectAddVertex(xpos, ypos, -1);
+		}
 	}
 }
 
@@ -235,24 +253,30 @@ void mousebtn_callback(GLFWwindow* window, int button, int action, int mods)
 			
 	}
 
+	GLuint current_mode = modeSwitch(FB_MODE_UNCHANGED);
 	if (button == GLFW_MOUSE_BUTTON_1 && DOUBLE_CLICK) {
-		if (modeSwitch(FB_MODE_UNCHANGED) == FB_MODE_SELECT_POLYGON) {
+		if (current_mode == FB_MODE_SELECT_POLYGON) {
 			modeSwitch(FB_MODE_NORMAL);
-			drawable.back().Pop();
+			selected_areas.back().Pop();
 			cout << "Finish Selection" << endl;
-			auto selectedIndices = func(pModel->vertices_2D, drawable.back().vertices);
+			auto selectedIndices = func(pModel->vertices_2D, selected_areas.back().vertices);
 			for (int i = 0; i < selectedIndices.size(); ++i) {
 				pModel->vertices[selectedIndices[i]].VertexColor = glm::vec3(1.0f, 0.0f, 0.0f);
-				//cout << "Vertex " << i << endl;
 			}
 		}
 	}
 
 	else if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
-		if (modeSwitch(FB_MODE_UNCHANGED) == FB_MODE_SELECT_POLYGON) {
-			Vertex2D v = Vertex2D(xpos / (GLfloat)screenWidth * 2.0f - 1, (screenHeight - ypos) / (GLfloat)screenHeight * 2.0f - 1);
-			cout << drawable.back().Count() << " " << v.Position.x << " " << v.Position.y << endl;
-			drawable.back().InsertBeforeEnd(v);
+		if (current_mode == FB_MODE_SELECT_POLYGON) {
+			areaSelectAddVertex(xpos, ypos, -2);
+		}
+		else if (current_mode = FB_MODE_SELECT_FREE_CURVE) {
+			modeSwitch(FB_MODE_NORMAL);
+			cout << "Finish Selection" << endl;
+			auto selectedIndices = func(pModel->vertices_2D, selected_areas.back().vertices);
+			for (int i = 0; i < selectedIndices.size(); ++i) {
+				pModel->vertices[selectedIndices[i]].VertexColor = glm::vec3(1.0f, 0.0f, 0.0f);
+			}
 		}
 	}
 }
@@ -301,4 +325,15 @@ GLuint modeSwitch(GLuint mode = FB_MODE_UNCHANGED)
 	else
 		return displayMode = mode;
 }
+
+void areaSelectAddVertex(double xpos, double ypos, int pos = -1)
+{
+	Vertex2D v = Vertex2D(xpos / (GLfloat)screenWidth * 2.0f - 1, (screenHeight - ypos) / (GLfloat)screenHeight * 2.0f - 1);
+	cout << selected_areas.back().Count() << " " << v.Position.x << " " << v.Position.y << endl;
+	if (pos == -1)
+		selected_areas.back().Append(v);
+	else if (pos == -2)
+		selected_areas.back().InsertBeforeEnd(v);
+}
+
 #pragma endregion
